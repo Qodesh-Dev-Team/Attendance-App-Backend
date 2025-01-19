@@ -25,7 +25,7 @@ public class Person extends EntityModel {
     @Enumerated(EnumType.STRING)
     private PersonStatus status;
 
-    @Column(columnDefinition = "BLOB")
+    @Lob
     private byte[] image = new byte[0];
 
     @ManyToOne
