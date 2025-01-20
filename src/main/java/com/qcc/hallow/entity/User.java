@@ -19,6 +19,8 @@ import lombok.Setter;
 @Setter
 public class User extends EntityModel {
 
+    private String firstname;
+    private String lastname;
     private String email;
     private String password;
     @Enumerated(EnumType.STRING)
