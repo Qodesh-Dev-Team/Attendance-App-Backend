@@ -18,6 +18,9 @@ public class UserDtoMapper {
     }
 
     public static List<UserDto> maptoDtoList(List<User> users) {
+        if(users == null) {
+            return null;
+        }
         return users.stream()
                 .map(UserDtoMapper::mapToDto)
                 .collect(Collectors.toList());

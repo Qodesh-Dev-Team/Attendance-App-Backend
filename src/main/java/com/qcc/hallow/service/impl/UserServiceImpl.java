@@ -10,6 +10,7 @@ import com.qcc.hallow.repository.UserRepository;
 import com.qcc.hallow.service.EmailService;
 import com.qcc.hallow.service.UserService;
 import com.qcc.hallow.util.EmailContentGenerator;
+import com.qcc.hallow.util.IdGenerator;
 import com.qcc.hallow.util.OtpGenerator;
 import com.qcc.hallow.util.PasswordUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,6 +40,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("User with email already exists");
         }
         User newUser = new User();
+        newUser.setId(IdGenerator.generateId());
         newUser.setFirstname(user.firstname());
         newUser.setLastname(user.lastname());
         newUser.setEmail(user.email());
@@ -60,16 +62,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(UserDto userDto) {
-        User user = userRepository.findUserByEmail(userDto.email()).orElse(null);
+    public void updateUser(String email, UserDto userDto) {
+        User user = userRepository.findUserByEmail(email).orElse(null);
         if (user == null) {
             throw new EntityNotFoundException("User with email not found");
         }
-        user.setFirstname(userDto.firstname());
-        user.setLastname(userDto.lastname());
-        user.setUserAccountType(userDto.userAccountType());
-        user.setUserAccountStatus(userDto.userAccountStatus());
-        userRepository.saveAndFlush(user);
+        if (userDto.firstname() != null) {
+            user.setFirstname(userDto.firstname());
+        }
+        if (userDto.lastname() != null) {
+            user.setLastname(userDto.lastname());
+        }
+        if (userDto.email() != null) {
+            user.setEmail(userDto.email());
+        }
+        if (userDto.userAccountType() != null) {
+            user.setUserAccountType(userDto.userAccountType());
+        }
+        if (userDto.userAccountStatus() != null) {
+            user.setUserAccountStatus(userDto.userAccountStatus());
+        }
+        userRepository.save(user);
     }
 
     @Override
@@ -92,7 +105,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void forgotPassword(String email) {
-        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new EntityNotFoundException("User with email not found"));
+        userRepository.findUserByEmail(email).orElseThrow(() -> new EntityNotFoundException("User with email not found"));
         String otpCode = OtpGenerator.generateOtpCode();
 
         OTPRequest request = new OTPRequest();
@@ -142,7 +155,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findUserByEmail(userLoginDto.email()).orElseThrow(() -> new EntityNotFoundException("User with email not found"));
         try {
             if (!PasswordUtil.verifyPassword(userLoginDto.password(), user.getPassword())) {
-                throw new RuntimeException("Passwords don't match");
+                throw new IllegalArgumentException("Passwords don't match");
             }
         } catch (PasswordUtil.InvalidHashException | PasswordUtil.CannotPerformOperationException e) {
             throw new RuntimeException(e.getMessage());
